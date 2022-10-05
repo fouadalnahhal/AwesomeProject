@@ -1,20 +1,52 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useState } from "react";
+import { AsyncStorage } from "react-native";
+import Login from "./Login.js";
+import Chirps from "./Chirps.js";
+import UselessTextInputMultiline from "./UselessTextInputMultiline.js";
+import { NavigationContainer } from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+
+const Stack = createNativeStackNavigator();
+const getData = async (key) => {
+  try {
+    const value = await AsyncStorage.getItem(key);
+    if (value !== null) {
+      return value;
+    }
+  } catch (e) {
+    // error reading value
+  }
+};
 
 export default function App() {
+  const [isLoading, setLoading] = useState(true);
+
+  const auth = async () => {
+    console.log((await getData("@access_token").then((value) => value)));
+    setLoading(
+      (await getData("@access_token").then((value) => value)) === null
+    );
+  };
+
+  useEffect(() => {
+    auth();
+  }, []);
+
   return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    isLoading ? (
+      <NavigationContainer>
+        <Stack.Navigator initialRouteName="Home">
+          <Stack.Screen name="Login" component={Login} />
+          <Stack.Screen name="Chirps" component={Chirps} />
+        </Stack.Navigator>
+      </NavigationContainer>
+    ) : (
+      <NavigationContainer>
+        <Stack.Navigator initialRouteName="Home">
+          <Stack.Screen name="Chirps" component={Chirps} />
+          <Stack.Screen name="UselessTextInputMultiline" component={UselessTextInputMultiline} />
+        </Stack.Navigator>
+      </NavigationContainer>
+    )
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
